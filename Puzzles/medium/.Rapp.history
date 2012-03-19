@@ -1,0 +1,1003 @@
+norm(V[,2,drop=F] + svd(M)$u[,2,drop=F],'F')
+norm(V[,2,drop=F] - svd(M)$u[,2,drop=F],'F')
+norm(V[,3,drop=F] + svd(M)$u[,3,drop=F],'F')
+norm(V[,3,drop=F] - svd(M)$u[,3,drop=F],'F')
+norm(V[,4,drop=F] - svd(M)$u[,4,drop=F],'F')
+norm(V[,4,drop=F] + svd(M)$u[,4,drop=F],'F')
+ set.seed(1119)#
+ n = 20#
+ p = 200#
+ Y = matrix(rnorm(n*p),n,p)#
+ S = svd(Y)#
+ S$d[5:20] = 0.01 * S$d[5:20]#
+ Y = S$u %*% diag(S$d) %*% t(S$v)#
+ Y = scale(Y, center=T)#
+ Y = (1/sqrt(dim(Y)[1]))*Y #
+ S = svd(Y)#
+ #
+ M = Y %*% t(Y)#
+ w = matrix(rnorm(n),ncol=1)#
+ #
+ k = 20 #<- Size of basis#
+ QRD = qr(generate.krylov(w,Y,k))#
+ V = qr.Q(QRD)#
+#
+ Yc = Y#
+  #
+ n.iter = 25#
+ b = matrix(NA, nrow(V), k)#
+ loss = matrix(0, nrow=n.iter+1, ncol=1)#
+#
+ lambda = diag(1, nrow=k, ncol=k)#
+ A = get.A(V, lambda)#
+ E1 = t(V) %*% Yc #
+ E = -E1 %*% t(E1)#
+ loss[1] = norm(A-M, 'F')#
+ VHx = vector(mode="list", length=n.iter)#
+ lambdaHx = vector(mode="list", length=n.iter)#
+ VHx[[1]] = V#
+ lambdaHx[[1]] = lambda#
+ epsilonHx = vector(mode="list", length=n.iter)#
+ epsilonHx[[1]] = apply(M %*% V - V %*% lambda, 2, FUN=function(x){norm(as.matrix(x),'F')})#
+ djHx = vector(mode="list", length=n.iter)#
+ dj = matrix(NA, best_k, 1)#
+ dj[1] = diag(lambda)[1] - diag(lambda)[2] - (epsilon[1] + epsilon[2])#
+ for (kk in 2:best_k) {#
+	first = diag(lambda)[kk-1] - diag(lambda)[kk] - (epsilon[kk-1] + epsilon[kk])#
+	second = diag(lambda)[kk] - diag(lambda)[kk+1] - (epsilon[kk] + epsilon[kk+1])#
+	dj[kk] = min(first, second)#
+ }#
+ gamma = epsilon[1:nrow(dj)]/dj#
+ errorHx = vector(mode="list", length=n.iter)#
+ errorHx[[1]] = gamma * sqrt(1 + gamma *gamma)#
+#
+ djHx[[1]] = dj#
+ r = dim(V)[2]	 #
+ for (iter in 1:n.iter) {#
+	updates = update.jacobi.all.pairs(V, E, lambda)#
+	lambda = updates$lambda#
+	V = updates$v#
+	sort.ix = sort(diag(lambda), decreasing=T, index.return=T)$ix#
+	V = V[,sort.ix]#
+    lambda = diag(diag(lambda)[sort.ix])#
+	E = updates$e[sort.ix, sort.ix]#
+	A = get.A(V, lambda)#
+	VHx[[iter+1]] = V#
+	lambdaHx[[iter+1]] = lambda#
+	loss[iter+1] = norm(A - M, 'F')#
+	epsilon = apply(M %*% V - V %*% lambda, 2, FUN=function(x){norm(as.matrix(x),'F')})#
+	epsilonHx[[iter+1]] = epsilon#
+    dj[1] = diag(lambda)[1] - diag(lambda)[2] - (epsilon[1] + epsilon[2])#
+    for (kk in 2:best_k) {#
+		first = diag(lambda)[kk-1] - diag(lambda)[kk] - (epsilon[kk-1] + epsilon[kk])#
+		second = diag(lambda)[kk] - diag(lambda)[kk+1] - (epsilon[kk] + epsilon[kk+1])#
+		dj[kk] = min(first, second)#
+	}#
+	djHx[[iter+1]] = dj#
+	gamma = epsilon[1:nrow(dj)]/dj#
+	errorHx[[iter+1]] = gamma * sqrt(1 + gamma *gamma)#
+  }
+errrorHx
+errorHx
+V
+V - svd(M)$u
+svd(M)$u
+V
+t(V) %*% svd(M)$u
+q('no')
+lambda = runif(20)
+lambda
+as.matrix(lambda)
+epsilon = 0.1 * runif(20)
+epsilon
+q('no')
+filenames = dir()[grep('Easy_',dir())]
+filenames[1]
+i = 1
+  con = file(filenames[i], open = 'r')#
+  puzzle = readLines(con, n = -1, warn = FALSE)#
+  close(con)#
+  board = puzzle[1]#
+  for (j in 2:9) {#
+    board = str_c(board, puzzle[j])#
+  }
+library(stringr)
+  con = file(filenames[i], open = 'r')#
+  puzzle = readLines(con, n = -1, warn = FALSE)#
+  close(con)#
+  board = puzzle[1]#
+  for (j in 2:9) {#
+    board = str_c(board, puzzle[j])#
+  }
+board
+ con = file(filenames[i], open = 'r')#
+  puzzle = readLines(con, n = -1, warn = FALSE)#
+  close(con)#
+  board = puzzle[1]#
+  for (j in 2:9) {#
+  	board = str_c(board,"\n")#
+    board = str_c(board, puzzle[j])#
+  }
+board
+dir()
+dir()
+system(paste('./sudoku < ', board))
+system(paste('./sudoku < ', eval(board)))
+eval(board)
+paste('./sudoku < ', eval(board))
+paste('./sudoku < "', eval(board),'"')
+system(paste('./sudoku'))
+ls()
+ls
+ls()
+### Get a problem from the test cases#
+inputFile = "top95.txt"#
+con  = file(inputFile, open = "r")#
+library(stringr)#
+oneLine = readLines(con, n = 1, warn = FALSE)#
+oneLine = readLines(con, n = 1, warn = FALSE)#
+close(con)#
+oneLine = str_split_fixed(oneLine,"",82)[-1]#
+oneLine = as.numeric(ifelse(oneLine==".", "0", (oneLine))#
+X = coordinate_rep(matrix(oneLine,9,9))#
+X = X[-which(X[,3]==0),,drop=F]#
+#
+### 1a. Make and Modify the constraint matrix#
+C = build_constraints_matrix()#
+#
+### 1b. Presolve the problem#
+presolved = presolve(C,X)#
+X <- presolved$X#
+D <- presolved$D#
+#
+# List of cells that are missing in each row.#
+Y = matrix(NA, 81-nrow(X), 2)#
+ix = 1#
+for (i in 1:9) {#
+  missing_columns = setdiff(1:9,X[which(X[,1]==i),2])#
+  nMissing = length(missing_columns)#
+  if (nMissing > 0) {#
+    for (j in 1:nMissing) {#
+      Y[ix,1] = i#
+      Y[ix,2] = missing_columns[j]#
+      ix = ix + 1#
+    }#
+  }#
+}#
+#
+counts = matrix(9,9,1)#
+for (i in 1:nrow(X)) {#
+  value = X[i,3]#
+  counts[value] = counts[value] - 1#
+}#
+#
+missing_values = c()#
+for (i in 1:length(counts)) {#
+  missing_values <- c(missing_values, rep(i,counts[i]))#
+}#
+#
+set.seed(11)#
+x = sample(missing_values, length(missing_values))#
+n = length(x)
+### Get a problem from the test cases#
+inputFile = "top95.txt"#
+con  = file(inputFile, open = "r")#
+library(stringr)#
+oneLine = readLines(con, n = 1, warn = FALSE)#
+oneLine = readLines(con, n = 1, warn = FALSE)#
+close(con)#
+oneLine = str_split_fixed(oneLine,"",82)[-1]
+oneLine
+as.numeric(ifelse(oneLine==".", "0", (oneLine))
+)
+oneLine = as.numeric(ifelse(oneLine==".", "0", (oneLine)))#
+X = coordinate_rep(matrix(oneLine,9,9))#
+X = X[-which(X[,3]==0),,drop=F]
+rm(list=ls())#
+library(plyr)#
+library(sudoku)#
+source("sudoku.R")
+### Get a problem from the test cases#
+inputFile = "top95.txt"#
+con  = file(inputFile, open = "r")#
+library(stringr)#
+oneLine = readLines(con, n = 1, warn = FALSE)#
+oneLine = readLines(con, n = 1, warn = FALSE)#
+close(con)#
+oneLine = str_split_fixed(oneLine,"",82)[-1]#
+oneLine = as.numeric(ifelse(oneLine==".", "0", (oneLine)))#
+X = coordinate_rep(matrix(oneLine,9,9))#
+X = X[-which(X[,3]==0),,drop=F]#
+#
+### 1a. Make and Modify the constraint matrix#
+C = build_constraints_matrix()#
+#
+### 1b. Presolve the problem#
+presolved = presolve(C,X)#
+X <- presolved$X#
+D <- presolved$D
+# List of cells that are missing in each row.#
+Y = matrix(NA, 81-nrow(X), 2)#
+ix = 1#
+for (i in 1:9) {#
+  missing_columns = setdiff(1:9,X[which(X[,1]==i),2])#
+  nMissing = length(missing_columns)#
+  if (nMissing > 0) {#
+    for (j in 1:nMissing) {#
+      Y[ix,1] = i#
+      Y[ix,2] = missing_columns[j]#
+      ix = ix + 1#
+    }#
+  }#
+}#
+#
+counts = matrix(9,9,1)#
+for (i in 1:nrow(X)) {#
+  value = X[i,3]#
+  counts[value] = counts[value] - 1#
+}#
+#
+missing_values = c()#
+for (i in 1:length(counts)) {#
+  missing_values <- c(missing_values, rep(i,counts[i]))#
+}#
+#
+set.seed(11)#
+x = sample(missing_values, length(missing_values))#
+n = length(x)
+Z = cbind(Y, x)
+Z
+X
+matrix_rep(X)
+matrix_rep(Z)
+U = rbind(X,Z)
+p = tensor_to_vector(make_tensor(U))
+p
+D %*% p
+which(D %*% p != 1)
+D[which(D %*% p != 1),]
+apply(D[which(D %*% p != 1),],1,sum)
+which(D %*% p != 1)
+D[which(D %*% p != 1),]
+dim(D[which(D %*% p != 1),])
+apply(D[which(D %*% p != 1),],2,sum)
+apply(D[which(D %*% p != 1),],1,sum)
+apply(D[which(D %*% p != 1),],1,sum)
+apply(D[which(D %*% p != 1),],2,sum)
+which(apply(D[which(D %*% p != 1),],2,sum) > 0)
+index_map_rev(which(apply(D[which(D %*% p != 1),],2,sum) > 0))
+lapply(which(apply(D[which(D %*% p != 1),],2,sum) > 0), index_map_rev)
+  violations = lapply(which(apply(D[which(D %*% p != 1),],2,sum) > 0), index_map_rev)#
+  unlist(violations)
+matrix(unlist(violations), ncol=3, byrow=T)
+matrix(unlist(violations), ncol=3, byrow=T)  V = matrix(unlist(violations), ncol=3, byrow=T)
+  V = matrix(unlist(violations), ncol=3, byrow=T)
+V
+V[,-3]
+  CV = D[which(D %*% p != 1),] #<- violated constraints
+dim(CV)
+apply(CV,2,sum)
+growl()
+#
+### Test Easy Puzzles#
+n_puzzles=sum(str_count(dir(),'Easy_'))#
+number_iterations_easy = matrix(NA, n_puzzles,1)#
+easy_puzzles = vector(mode="list", n_puzzles)#
+C = build_constraints_matrix()
+n_puzzles
+#
+filenames = dir()[grep('Easy_',dir())]
+filenames
+#
+for (i in 1:n_puzzles) {#
+  con = file(filenames[i], open = 'r')#
+  puzzle = readLines(con, n = -1, warn = FALSE)#
+  close(con)#
+  board = puzzle[1]#
+  for (j in 2:9) {#
+    board = str_c(board, puzzle[j])#
+  }#
+  puzzle = coordinate_rep(matrix(as.numeric(str_split_fixed(board,"",82)[-1]),9,9))#
+  easy_puzzles[[i]] = puzzle[-which(puzzle[,3]==0),,drop=F]#
+}#
+#
+duds = matrix(0, n_puzzles, 1)
+#
+system.time({#
+for (i in 1:n_puzzles) {#
+  ### 1b. Presolve the problem#
+  X = easy_puzzles[[i]]#
+  presolved = presolve(C,X)#
+  X <- presolved$X#
+  D <- presolved$D#
+  if (nrow(X) == 81) duds[i] = 1#
+}#
+})#
+growl('Culling Easy is done!')
+2649/60
+dud
+dus
+duds
+which(duds==1)
+save(duds,file='duds.rda')
+ix.duds = which(duds == 1)
+ix.duds
+i =1
+  filename = filenames[ix.duds[i]]
+filename
+ix.duds[1]
+paste('rm ', filename, sep="")
+length(ix.duds)
+dir()
+length(ix.duds)
+ix.duds[5242]
+  filename = filenames[ix.duds[5281]]
+filename
+  filename = filenames[ix.duds[5242]]
+filename
+ix.duds = which(duds == 1)#
+### Cull the good puzzles from the duds#
+for (i in 1:length(ix.duds)) {#
+  filename = filenames[ix.duds[i]]#
+#  filename = paste('Easy_',ix.duds[i],'.txt',sep="")#
+  system(paste('rm ', filename, sep=""))#
+}
+#
+ix.good = which(duds == 0)#
+for (i in 1:length(ix.good)) {#
+  filename_old = paste('Easy_',ix.good[i],'.txt',sep="")#
+  filename_new = paste('Easy_',i,'b.txt',sep="")#
+  system(paste('mv',filename_old, filename_new,sep=" "))#
+}
+dir()
+ix.good
+filenames[ix.good]
+i
+  filename_old = filenames[ix.good[i]]
+filename_old
+#
+ix.good = which(duds == 0)#
+for (i in 1:length(ix.good)) {#
+  filename_old = filenames[ix.good[i]]#
+  filename_new = paste('Easy_',i,'b.txt',sep="")#
+  system(paste('mv',filename_old, filename_new,sep=" "))#
+}
+dir()
+setwd(../)
+setwd("..")
+dir()
+filenames = dir()[grep('Easy_',dir())]
+filenames
+### Test Easy Puzzles#
+n_puzzles=sum(str_count(dir(),'Easy_'))#
+number_iterations_easy = matrix(NA, n_puzzles,1)#
+easy_puzzles = vector(mode="list", n_puzzles)#
+C = build_constraints_matrix()#
+#
+filenames = dir()[grep('Easy_',dir())]
+filenames
+i = 1
+  filename_old = filenames[i]#
+  filename_new = paste('Easy_',i,'c.txt',sep="")
+paste('mv',filename_old, filename_new,sep=" ")
+i = 25
+  filename_old = filenames[i]#
+  filename_new = paste('Easy_',i,'c.txt',sep="")
+paste('mv',filename_old, filename_new,sep=" ")
+  for (i in 1:n_puzzles) {#
+  filename_old = filenames[i]#
+  filename_new = paste('Easy_',i,'c.txt',sep="")#
+  system(paste('mv',filename_old, filename_new,sep=" "))#
+}
+dir()
+filenames = dir()[grep('Easy_',dir())]
+filenames
+#
+### Test Easy Puzzles#
+n_puzzles=sum(str_count(dir(),'Easy_'))#
+number_iterations_easy = matrix(NA, n_puzzles,1)#
+easy_puzzles = vector(mode="list", n_puzzles)#
+C = build_constraints_matrix()#
+#
+filenames = dir()[grep('Easy_',dir())]
+i = 1
+  filename_old = filenames[i]#
+  filename_new = paste('Easy_',i,'.txt',sep="")
+paste('mv',filename_old, filename_new,sep=" ")
+  for (i in 1:n_puzzles) {#
+  filename_old = filenames[i]#
+  filename_new = paste('Easy_',i,'.txt',sep="")#
+  system(paste('mv',filename_old, filename_new,sep=" "))
+}
+dir()
+system("./sudoku < Easy_1.txt")
+#
+for (i in 1:n_puzzles) {#
+  con = file(filenames[i], open = 'r')#
+  puzzle = readLines(con, n = -1, warn = FALSE)#
+  close(con)#
+  board = puzzle[1]#
+  for (j in 2:9) {#
+    board = str_c(board, puzzle[j])#
+  }#
+  puzzle = coordinate_rep(matrix(as.numeric(str_split_fixed(board,"",82)[-1]),9,9))#
+  easy_puzzles[[i]] = puzzle[-which(puzzle[,3]==0),,drop=F]#
+}
+filenames
+filenames = dir()[grep('Easy_',dir())]#
+#
+for (i in 1:n_puzzles) {#
+  con = file(filenames[i], open = 'r')#
+  puzzle = readLines(con, n = -1, warn = FALSE)#
+  close(con)#
+  board = puzzle[1]#
+  for (j in 2:9) {#
+    board = str_c(board, puzzle[j])#
+  }#
+  puzzle = coordinate_rep(matrix(as.numeric(str_split_fixed(board,"",82)[-1]),9,9))#
+  easy_puzzles[[i]] = puzzle[-which(puzzle[,3]==0),,drop=F]#
+}
+easy_puzzles[[1]]
+i = 1
+ ### 1b. Presolve the problem#
+  X = easy_puzzles[[i]]#
+  presolved = presolve(C,X)#
+  X <- presolved$X#
+  D <- presolved$D#
+  ### 2. Populate P#
+  P = make_tensor(X)#
+#
+  # vectorize P#
+  p0 = tensor_to_vector(P)#
+#
+  ### 3. Apply the projections#
+  p = p0#
+  max_resolves = 1e2#
+  eta = 1e-3#
+  total_iter = 0
+    sol = call_sudoku_by_projection(p, D)
+    sol = call_sudoku_by_projection(p, D)
+    sol = call_sudoku_by_projection(p, D)
+sol$iter
+    p_last = p#
+    p = sol$p#
+    print(paste("Attempt number",j, ", iterations =",sol$iter) )#
+    P_final = vector_to_tensor(p)#
+    Answer = tensor_to_answer(P_final)#
+    total_iter = total_iter + sol$iter#
+    ### Check Answer#
+    P_clean = make_tensor(coordinate_rep(Answer))#
+    p_clean = tensor_to_vector(P_clean)
+C %*% p
+C %*% p_clean
+ # vectorize P#
+  p0 = tensor_to_vector(P)#
+#
+  ### 3. Apply the projections#
+  p = p0#
+  max_resolves = 1e2#
+  eta = 1e-3#
+  total_iter = 0  #
+  for (j in 1:max_resolves) {#
+  #  sol = call_sudoku_by_projection(p, D, eta=eta)#
+    sol = call_sudoku_by_projection(p, D)#
+    p_last = p#
+    p = sol$p#
+    print(paste("Attempt number",j, ", iterations =",sol$iter) )#
+    P_final = vector_to_tensor(p)#
+    Answer = tensor_to_answer(P_final)#
+    total_iter = total_iter + sol$iter#
+    ### Check Answer#
+    P_clean = make_tensor(coordinate_rep(Answer))#
+    p_clean = tensor_to_vector(P_clean)#
+    if (all(C %*% p_clean == 1)) {#
+      print("Correct Solution Found.")#
+        correct_tally[i, 1] = 1#
+        correct_tally[i, 2] = total_iter      #
+    break#
+    } else {#
+      p = p_clean#
+    }#
+    	eta = max(eta * 0.75, 1e-16)#
+  	}
+X
+matrix_rep(X)
+nrow(D)
+#
+for (i in 1:n_puzzles) {#
+  ### 1b. Presolve the problem#
+  X = easy_puzzles[[i]]#
+  presolved = presolve(C,X)#
+  X <- presolved$X#
+  D <- presolved$D#
+  ### 2. Populate P#
+  P = make_tensor(X)#
+#
+  # vectorize P#
+  p0 = tensor_to_vector(P)#
+#
+  ### 3. Apply the projections#
+  p = p0#
+  max_resolves = 1e2#
+  eta = 1e-3#
+  total_iter = 0  #
+  for (j in 1:max_resolves) {#
+  #  sol = call_sudoku_by_projection(p, D, eta=eta)#
+    sol = call_sudoku_by_projection(p, D)#
+    p_last = p#
+    p = sol$p#
+    print(paste("Attempt number",j, ", iterations =",sol$iter) )#
+    P_final = vector_to_tensor(p)#
+    Answer = tensor_to_answer(P_final)#
+    total_iter = total_iter + sol$iter#
+    ### Check Answer#
+    P_clean = make_tensor(coordinate_rep(Answer))#
+    p_clean = tensor_to_vector(P_clean)#
+    if (all(C %*% p_clean == 1)) {#
+      print("Correct Solution Found.")#
+        correct_tally[i, 1] = 1#
+        correct_tally[i, 2] = total_iter      #
+    break#
+    } else {#
+      p = p_clean#
+    }#
+    	eta = max(eta * 0.75, 1e-16)#
+  	}#
+  growl(paste('Easy Puzzle ',i, ' out of ', n_puzzles, " done! (wins = ", sum(correct_tally[1:i,1]),")",sep=""))#
+#
+  #
+}
+#
+correct_tally = matrix(0, length(ix), 2)#
+#
+for (i in 1:n_puzzles) {#
+  ### 1b. Presolve the problem#
+  X = easy_puzzles[[i]]#
+  presolved = presolve(C,X)#
+  X <- presolved$X#
+  D <- presolved$D#
+  ### 2. Populate P#
+  P = make_tensor(X)#
+#
+  # vectorize P#
+  p0 = tensor_to_vector(P)#
+#
+  ### 3. Apply the projections#
+  p = p0#
+  max_resolves = 1e2#
+  eta = 1e-3#
+  total_iter = 0  #
+  for (j in 1:max_resolves) {#
+  #  sol = call_sudoku_by_projection(p, D, eta=eta)#
+    sol = call_sudoku_by_projection(p, D)#
+    p_last = p#
+    p = sol$p#
+    print(paste("Attempt number",j, ", iterations =",sol$iter) )#
+    P_final = vector_to_tensor(p)#
+    Answer = tensor_to_answer(P_final)#
+    total_iter = total_iter + sol$iter#
+    ### Check Answer#
+    P_clean = make_tensor(coordinate_rep(Answer))#
+    p_clean = tensor_to_vector(P_clean)#
+    if (all(C %*% p_clean == 1)) {#
+      print("Correct Solution Found.")#
+        correct_tally[i, 1] = 1#
+        correct_tally[i, 2] = total_iter      #
+    break#
+    } else {#
+      p = p_clean#
+    }#
+    	eta = max(eta * 0.75, 1e-16)#
+  	}#
+  growl(paste('Easy Puzzle ',i, ' out of ', n_puzzles, " done! (wins = ", sum(correct_tally[1:i,1]),")",sep=""))#
+#
+  #
+}
+i
+dim(correct_tally)
+#
+correct_tally = matrix(0, n_puzzles, 2)#
+#
+for (i in 1:n_puzzles) {#
+  ### 1b. Presolve the problem#
+  X = easy_puzzles[[i]]#
+  presolved = presolve(C,X)#
+  X <- presolved$X#
+  D <- presolved$D#
+  ### 2. Populate P#
+  P = make_tensor(X)#
+#
+  # vectorize P#
+  p0 = tensor_to_vector(P)#
+#
+  ### 3. Apply the projections#
+  p = p0#
+  max_resolves = 1e2#
+  eta = 1e-3#
+  total_iter = 0  #
+  for (j in 1:max_resolves) {#
+  #  sol = call_sudoku_by_projection(p, D, eta=eta)#
+    sol = call_sudoku_by_projection(p, D)#
+    p_last = p#
+    p = sol$p#
+    print(paste("Attempt number",j, ", iterations =",sol$iter) )#
+    P_final = vector_to_tensor(p)#
+    Answer = tensor_to_answer(P_final)#
+    total_iter = total_iter + sol$iter#
+    ### Check Answer#
+    P_clean = make_tensor(coordinate_rep(Answer))#
+    p_clean = tensor_to_vector(P_clean)#
+    if (all(C %*% p_clean == 1)) {#
+      print("Correct Solution Found.")#
+        correct_tally[i, 1] = 1#
+        correct_tally[i, 2] = total_iter      #
+    break#
+    } else {#
+      p = p_clean#
+    }#
+    	eta = max(eta * 0.75, 1e-16)#
+  	}#
+  growl(paste('Easy Puzzle ',i, ' out of ', n_puzzles, " done! (wins = ", sum(correct_tally[1:i,1]),")",sep=""))#
+#
+  #
+}
+44/52
+library(stringr)
+rm(list=ls())
+source('~/Dropbox/Research/Sudoku/sudoku.R')
+### Test Easy Puzzles#
+n_puzzles=sum(str_count(dir(),'Easy_'))#
+number_iterations_easy = matrix(NA, n_puzzles,1)#
+easy_puzzles = vector(mode="list", n_puzzles)#
+C = build_constraints_matrix()#
+#
+filenames = dir()[grep('Easy_',dir())]#
+#
+for (i in 1:n_puzzles) {#
+  con = file(filenames[i], open = 'r')#
+  puzzle = readLines(con, n = -1, warn = FALSE)#
+  close(con)#
+  board = puzzle[1]#
+  for (j in 2:9) {#
+    board = str_c(board, puzzle[j])#
+  }#
+  puzzle = coordinate_rep(matrix(as.numeric(str_split_fixed(board,"",82)[-1]),9,9))#
+  easy_puzzles[[i]] = puzzle[-which(puzzle[,3]==0),,drop=F]#
+}
+duds = matrix(0, n_puzzles, 1)
+#
+system.time({#
+for (i in 1:n_puzzles) {#
+  ### Presolve the problem#
+  X = easy_puzzles[[i]]#
+  presolved = presolve(C,X)#
+  X <- presolved$X#
+  D <- presolved$D#
+  if (nrow(X) == 81) duds[i] = 1#
+}#
+})#
+growl('Culling Easy is done!')
+duds
+sum(duds)
+5000-sum(duds)
+save(duds,file='duds.rda')
+ix.duds = which(duds == 1)#
+### Cull the good puzzles from the duds#
+for (i in 1:length(ix.duds)) {#
+  filename = filenames[ix.duds[i]]#
+  system(paste('rm ', filename, sep=""))#
+}#
+growl('rm Easy is done!')
+ix.good = which(duds == 0)#
+for (i in 1:length(ix.good)) {#
+  filename_old = filenames[ix.good[i]]#
+  filename_new = paste('Easy_',i,'b.txt',sep="")#
+  system(paste('mv',filename_old, filename_new,sep=" "))#
+}
+dir()
+dir()
+filenames = dir()[grep('Easy_',dir())]
+length(filenames)
+filenames = dir()[grep('Easy_',dir())]#
+for (i in 1:length(filenames)) {#
+  filename_old = filenames[i]#
+  filename_new = paste('Easy_',i,'c.txt',sep="")#
+  system(paste('mv',filename_old, filename_new,sep=" "))#
+}
+#
+filenames = dir()[grep('Easy_',dir())]#
+for (i in 1:length(filenames)) {#
+  filename_old = filenames[i]#
+  filename_new = paste('Easy_',i,'.txt',sep="")#
+  system(paste('mv',filename_old, filename_new,sep=" "))#
+}
+library(stringr)#
+setwd('~/Dropbox/Research/Sudoku/Tests/easy')#
+source('~/Dropbox/Research/Sudoku/sudoku.R')#
+#
+### Test Easy Puzzles#
+n_puzzles=sum(str_count(dir(),'Easy_'))#
+number_iterations_easy = matrix(NA, n_puzzles,1)#
+easy_puzzles = vector(mode="list", n_puzzles)#
+C = build_constraints_matrix()#
+#
+filenames = dir()[grep('Easy_',dir())]
+filenames
+#
+for (i in 1:n_puzzles) {#
+  con = file(filenames[i], open = 'r')#
+  puzzle = readLines(con, n = -1, warn = FALSE)#
+  close(con)#
+  board = puzzle[1]#
+  for (j in 2:9) {#
+    board = str_c(board, puzzle[j])#
+  }#
+  puzzle = coordinate_rep(matrix(as.numeric(str_split_fixed(board,"",82)[-1]),9,9))#
+  easy_puzzles[[i]] = puzzle[-which(puzzle[,3]==0),,drop=F]#
+}#
+#
+duds = matrix(0, n_puzzles, 1)
+system.time({#
+for (i in 1:n_puzzles) {#
+  ### Presolve the problem#
+  X = easy_puzzles[[i]]#
+  presolved = presolve(C,X)#
+  X <- presolved$X#
+  D <- presolved$D#
+  if (nrow(X) == 81) duds[i] = 1#
+}#
+})#
+growl('Culling Easy is done!')
+duds
+sum(duds)
+library(stringr)#
+setwd('~/Dropbox/Research/Sudoku/Tests/medium')#
+source('~/Dropbox/Research/Sudoku/sudoku.R')#
+#
+### Test Medium Puzzles#
+n_puzzles=sum(str_count(dir(),'Medium_'))#
+number_iterations_medium = matrix(NA, n_puzzles,1)#
+medium_puzzles = vector(mode="list", n_puzzles)#
+C = build_constraints_matrix()#
+#
+filenames = dir()[grep('Medium_',dir())]
+filenames
+for (i in 1:n_puzzles) {#
+  filename = filenames[i]#
+  con = file(filename, open = 'r')#
+  puzzle = readLines(con, n = -1, warn = FALSE)#
+  close(con)#
+  board = puzzle[1]#
+  for (j in 2:9) {#
+    board = str_c(board, puzzle[j])#
+  }#
+  puzzle = coordinate_rep(matrix(as.numeric(str_split_fixed(board,"",82)[-1]),9,9))#
+  medium_puzzles[[i]] = puzzle[-which(puzzle[,3]==0),,drop=F]#
+}
+### Code for culling the non-trivial puzzles from the set generated from Matlab#
+duds = matrix(0, n_puzzles, 1)#
+for (i in 1:n_puzzles) {#
+  ### Presolve the problem#
+  X = medium_puzzles[[i]]#
+  presolved = presolve(C,X)#
+  X <- presolved$X#
+  D <- presolved$D#
+  if (nrow(X) == 81) duds[i] = 1#
+}
+duds
+ix.duds = which(duds == 1)
+ix.duds
+filenames[ix.duds]
+ix.duds = which(duds == 1)#
+### Cull the good puzzles from the duds#
+for (i in 1:length(ix.duds)) {#
+  filename = filenames[ix.duds[i]]#
+  system(paste('rm ', filename, sep=""))#
+}
+dir()
+#
+ix.good = which(duds == 0)#
+for (i in 1:length(ix.good)) {#
+  filename_old = filenames[ix.good[i]]#
+  filename_new = paste('Medium_',i,'a.txt',sep="")#
+  system(paste('mv',filename_old, filename_new,sep=" "))#
+}
+dir()
+rm(list=ls())
+source('~/Dropbox/Research/Sudoku/sudoku.R')#
+#
+### Test Medium Puzzles#
+n_puzzles=sum(str_count(dir(),'Medium_'))#
+number_iterations_medium = matrix(NA, n_puzzles,1)#
+medium_puzzles = vector(mode="list", n_puzzles)#
+C = build_constraints_matrix()#
+#
+filenames = dir()[grep('Medium_',dir())]#
+#
+for (i in 1:n_puzzles) {#
+  filename = filenames[i]#
+  con = file(filename, open = 'r')#
+  puzzle = readLines(con, n = -1, warn = FALSE)#
+  close(con)#
+  board = puzzle[1]#
+  for (j in 2:9) {#
+    board = str_c(board, puzzle[j])#
+  }#
+  puzzle = coordinate_rep(matrix(as.numeric(str_split_fixed(board,"",82)[-1]),9,9))#
+  medium_puzzles[[i]] = puzzle[-which(puzzle[,3]==0),,drop=F]#
+}#
+#
+### Code for culling the non-trivial puzzles from the set generated from Matlab#
+duds = matrix(0, n_puzzles, 1)#
+for (i in 1:n_puzzles) {#
+  ### Presolve the problem#
+  X = medium_puzzles[[i]]#
+  presolved = presolve(C,X)#
+  X <- presolved$X#
+  D <- presolved$D#
+  if (nrow(X) == 81) duds[i] = 1#
+}
+duds
+rm(list=ls())
+source('~/Dropbox/Research/Sudoku/sudoku.R')
+#
+### Test Medium Puzzles#
+n_puzzles=sum(str_count(dir(),'Medium_'))#
+number_iterations_medium = matrix(NA, n_puzzles,1)#
+medium_puzzles = vector(mode="list", n_puzzles)#
+C = build_constraints_matrix()#
+#
+filenames = dir()[grep('Medium_',dir())]#
+#
+for (i in 1:n_puzzles) {#
+  filename = filenames[i]#
+  con = file(filename, open = 'r')#
+  puzzle = readLines(con, n = -1, warn = FALSE)#
+  close(con)#
+  board = puzzle[1]#
+  for (j in 2:9) {#
+    board = str_c(board, puzzle[j])#
+  }#
+  puzzle = coordinate_rep(matrix(as.numeric(str_split_fixed(board,"",82)[-1]),9,9))#
+  medium_puzzles[[i]] = puzzle[-which(puzzle[,3]==0),,drop=F]#
+}
+### Code for culling the non-trivial puzzles from the set generated from Matlab#
+duds = matrix(0, n_puzzles, 1)#
+system.time({#
+for (i in 1:n_puzzles) {#
+  ### Presolve the problem#
+  X = medium_puzzles[[i]]#
+  presolved = presolve(C,X)#
+  X <- presolved$X#
+  D <- presolved$D#
+  if (nrow(X) == 81) duds[i] = 1#
+}#
+})#
+growl('Culling Medium is done!')
+duds
+sum(duds)
+save(duds,'duds.rda')
+save(duds,file='duds.rda')
+ix.duds = which(duds == 1)
+ix.duds
+length(ix.duds)
+### Cull the good puzzles from the duds#
+for (i in 1:length(ix.duds)) {#
+  filename = filenames[ix.duds[i]]#
+  system(paste('rm ', filename, sep=""))#
+}
+sum(duds)
+ix.duds
+ix.good = which(duds == 0)
+ix.good
+ls()
+n_puzzles
+ix.duds = which(duds == 1)#
+### Cull the good puzzles from the duds#
+for (i in 1:length(ix.duds)) {#
+  filename = filenames[ix.duds[i]]#
+  system(paste('rm ', filename, sep=""))#
+}
+### Test Medium Puzzles#
+n_puzzles=sum(str_count(dir(),'Medium_'))#
+number_iterations_medium = matrix(NA, n_puzzles,1)#
+medium_puzzles = vector(mode="list", n_puzzles)#
+C = build_constraints_matrix()#
+#
+filenames = dir()[grep('Medium_',dir())]
+filenames
+n_puzzles
+for (i in 1:n_puzzles) {#
+  filename = filenames[i]#
+  con = file(filename, open = 'r')#
+  puzzle = readLines(con, n = -1, warn = FALSE)#
+  close(con)#
+  board = puzzle[1]#
+  for (j in 2:9) {#
+    board = str_c(board, puzzle[j])#
+  }#
+  puzzle = coordinate_rep(matrix(as.numeric(str_split_fixed(board,"",82)[-1]),9,9))#
+  medium_puzzles[[i]] = puzzle[-which(puzzle[,3]==0),,drop=F]#
+}
+### Code for culling the non-trivial puzzles from the set generated from Matlab#
+duds = matrix(0, n_puzzles, 1)#
+system.time({#
+for (i in 1:n_puzzles) {#
+  ### Presolve the problem#
+  X = medium_puzzles[[i]]#
+  presolved = presolve(C,X)#
+  X <- presolved$X#
+  D <- presolved$D#
+  if (nrow(X) == 81) duds[i] = 1#
+}#
+})#
+growl('Culling Medium is done!')
+duds
+rm(list=ls())
+library(stringr)
+source('~/Dropbox/Research/Sudoku/sudoku.R')
+#
+n_puzzles=sum(str_count(dir(),'Medium_'))#
+number_iterations_medium = matrix(NA, n_puzzles,1)#
+medium_puzzles = vector(mode="list", n_puzzles)#
+C = build_constraints_matrix()#
+#
+filenames = dir()[grep('Medium_',dir())]
+#
+for (i in 1:n_puzzles) {#
+  filename = filenames[i]#
+  con = file(filename, open = 'r')#
+  puzzle = readLines(con, n = -1, warn = FALSE)#
+  close(con)#
+  board = puzzle[1]#
+  for (j in 2:9) {#
+    board = str_c(board, puzzle[j])#
+  }#
+  puzzle = coordinate_rep(matrix(as.numeric(str_split_fixed(board,"",82)[-1]),9,9))#
+  medium_puzzles[[i]] = puzzle[-which(puzzle[,3]==0),,drop=F]#
+}
+length(filenames)
+### Code for culling the non-trivial puzzles from the set generated from Matlab#
+duds = matrix(0, n_puzzles, 1)#
+system.time({#
+for (i in 1:n_puzzles) {#
+  ### Presolve the problem#
+  X = medium_puzzles[[i]]#
+  presolved = presolve(C,X)#
+  X <- presolved$X#
+  D <- presolved$D#
+  if (nrow(X) == 81) duds[i] = 1#
+}#
+})#
+growl('Culling Medium is done!')
+duds
+sum(duds)
+save(duds, file="duds.rda")
+ix.duds = which(duds == 1)#
+### Cull the good puzzles from the duds#
+for (i in 1:length(ix.duds)) {#
+  filename = filenames[ix.duds[i]]#
+  system(paste('rm ', filename, sep=""))#
+}
+filenames = dir()[grep('Medium_',dir())]
+filenames
+for (i in 1:length(filenames)) {#
+  filename_old = filenames[i]#
+  filename_new = paste('Medium_',i,'z.txt',sep="")#
+  system(paste('mv',filename_old, filename_new,sep=" "))#
+}
+#
+for (i in 1:length(filenames)) {#
+  filename_old = filenames[i]#
+  filename_new = paste('Medium_',i,'.txt',sep="")#
+  system(paste('mv',filename_old, filename_new,sep=" "))#
+}
+filenames = dir()[grep('Medium_',dir())]
+filenames
+#
+for (i in 1:length(filenames)) {#
+  filename_old = filenames[i]#
+  filename_new = paste('Medium_',i,'.txt',sep="")#
+  system(paste('mv',filename_old, filename_new,sep=" "))#
+}
+q('no')

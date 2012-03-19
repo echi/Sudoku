@@ -1,0 +1,213 @@
+MODULE CONSTANTS
+  
+  IMPLICIT NONE
+  INTEGER, PARAMETER :: DBLE_PREC = KIND(0.0D0)
+  REAL(KIND=DBLE_PREC), PARAMETER :: ZERO  = 0.0_DBLE_PREC
+  REAL(KIND=DBLE_PREC), PARAMETER :: ONE   = 1.0_DBLE_PREC
+  REAL(KIND=DBLE_PREC), PARAMETER :: TWO   = 2.0_DBLE_PREC
+  REAL(KIND=DBLE_PREC), PARAMETER :: THREE = 3.0_DBLE_PREC
+  REAL(KIND=DBLE_PREC), PARAMETER :: FOUR  = 4.0_DBLE_PREC
+
+END MODULE CONSTANTS
+
+MODULE SORT
+  
+  USE CONSTANTS
+  
+CONTAINS 
+  RECURSIVE SUBROUTINE QUICK_SORT(LIST)
+    !
+    !     This subroutine sorts the real array LIST into nonincreasing
+    !     order by a combination of quick sort and exchange sort.
+    !
+    !     Taken from Ken's code.
+    !
+    IMPLICIT NONE
+    INTEGER :: I,J,N
+    REAL(KIND=DBLE_PREC) :: SPLIT, UNIFORM
+    REAL(KIND=DBLE_PREC), DIMENSION(:), INTENT(INOUT) :: LIST
+    !
+    N = SIZE(LIST)
+    !
+    !     For small lists do an exchange sort.
+    !
+    IF (N<=6) THEN
+       DO I = 1,N
+          DO J = I+1,N
+             IF (LIST(I)<LIST(J)) THEN
+                CALL SWAP(LIST(I),LIST(J))
+             END IF
+          END DO
+       END DO
+       RETURN
+    END IF
+    !
+    !     Otherwise carry out a quick sort.           
+    !
+    CALL RANDOM_NUMBER(UNIFORM)
+    I = INT(N*UNIFORM)+1
+    SPLIT = LIST(I)
+    LIST(I) = LIST(1)
+    LIST(1) = SPLIT
+    I = 1
+    DO J = 2,N
+       IF (LIST(J)>=SPLIT) THEN
+          I = I+1
+          CALL SWAP(LIST(I),LIST(J))
+       END IF
+    END DO
+    LIST(1) = LIST(I)
+    LIST(I) = SPLIT
+    IF (I>2) CALL QUICK_SORT(LIST(1:I-1))
+    IF (I+1<N) CALL QUICK_SORT(LIST(I+1:N))
+  END SUBROUTINE QUICK_SORT
+  
+  SUBROUTINE SWAP(A,B)
+    !
+    !     This subroutine swaps two reals.
+    !
+    IMPLICIT NONE
+    REAL(KIND=DBLE_PREC) :: A,B,TEMP
+    !
+    TEMP = A
+    A = B
+    B = TEMP
+  END SUBROUTINE SWAP
+END MODULE SORT
+
+MODULE PROJECTION
+  
+  USE CONSTANTS
+  
+CONTAINS
+  
+  SUBROUTINE PROJECT_TO_SIMPLEX(V, IX)
+    !
+    USE SORT
+    IMPLICIT NONE
+    INTEGER :: J, N, RHO, IX(:)
+    REAL(KIND=DBLE_PREC), DIMENSION(:) :: V
+    REAL(KIND=DBLE_PREC), DIMENSION(SIZE(IX)) :: MU
+    REAL(KIND=DBLE_PREC) :: CUMSUM, THETA
+    ! 
+    !      N = SIZE(V)
+    N = SIZE(IX)
+    DO J = 1,N
+       MU(J) = V(IX(J))
+    END DO
+    !      MU = V
+    !
+    CALL QUICK_SORT(MU)
+    CUMSUM = MU(1)
+    DO J = 2,N
+       CUMSUM = CUMSUM + MU(J)
+       IF (DBLE(J)*MU(J) - CUMSUM + ONE .LE. ZERO) THEN
+          RHO = J - 1
+          EXIT
+       END IF
+       RHO = J
+    END DO
+    THETA = (SUM(MU(1:RHO)) - ONE) / DBLE(RHO)
+    !
+    DO J = 1,N
+       V(IX(J)) = MAX(V(IX(J)) - THETA, ZERO)
+    END DO
+  END SUBROUTINE PROJECT_TO_SIMPLEX
+
+  FUNCTION NORM(X) RESULT(LEN)
+    
+    IMPLICIT NONE
+    INTEGER :: I
+    REAL(KIND=DBLE_PREC) :: LEN, X(:)
+
+    LEN = ZERO
+    DO I = 1, SIZE(X)
+       LEN = LEN + (X(I) * X(I))
+    END DO
+    LEN = SQRT(LEN)
+    
+  END FUNCTION NORM
+
+  FUNCTION INDEX_MAP(I, J, K) RESULT(INDEX)
+
+    IMPLICIT NONE
+    INTEGER :: I, J, K, INDEX
+
+    INDEX = I + 9*(J-1) + 81*(K-1)
+    
+  END FUNCTION INDEX_MAP
+
+  SUBROUTINE QUANTIFY(P,Q)!  RESULT(Q)
+    
+    IMPLICIT NONE
+    REAL(KIND=DBLE_PREC) :: P(:)
+    INTEGER :: I, J, K, K_MAX(1), IX(9), Q(SIZE(P)), INDEX
+!
+    Q = 0
+    DO I = 1,9
+       DO J = 1,9
+          DO K = 1,9
+             IX(K) = INDEX_MAP(I,J,K)
+          END DO
+          K_MAX = MAXLOC(P(IX))
+          Q(IX(K_MAX)) = 1
+       END DO
+    END DO
+  END SUBROUTINE QUANTIFY
+  
+  FUNCTION CHECK_SOLUTION(Q, INDEX_MATRIX, ACTIVE_LENGTHS) RESULT(FEASIBLE)
+
+    IMPLICIT NONE
+    INTEGER :: Q(:), INDEX_MATRIX(:,:), ACTIVE_LENGTHS(:)
+    LOGICAL :: FEASIBLE
+    INTEGER :: I, J, N_CONSTRAINTS, CONSTRAINT
+    
+    N_CONSTRAINTS = SIZE(INDEX_MATRIX,1)
+    
+    FEASIBLE = .TRUE.
+    DO I = 1,N_CONSTRAINTS
+       CONSTRAINT = 0
+       DO J = 1,ACTIVE_LENGTHS(I)
+          CONSTRAINT = CONSTRAINT + Q(INDEX_MATRIX(I,J))
+       END DO
+       IF (CONSTRAINT .NE. 1) THEN
+          FEASIBLE = .FALSE.
+          EXIT
+       END IF
+    END DO
+    
+  END FUNCTION CHECK_SOLUTION
+
+END MODULE PROJECTION
+  
+SUBROUTINE SUDOKU_BY_PROJECTION(P, Q, N, INDEX_MATRIX, N_CONSTRAINTS, ACTIVE_LENGTHS, MAX_ITER, ETA, ITER, LEN, QINT)
+  !
+  USE CONSTANTS
+  USE PROJECTION
+  !
+  IMPLICIT NONE
+  INTEGER :: N, N_CONSTRAINTS, I, MAX_ITER, ITER
+  INTEGER :: INDEX_MATRIX(N_CONSTRAINTS, 9), ACTIVE_LENGTHS(N_CONSTRAINTS), QINT(N)
+  REAL(KIND=DBLE_PREC) :: P(N), Q_LAST(N), DIFF(N), Q(N), LEN, ETA
+  !
+  Q = P
+  DO ITER = 1, MAX_ITER
+     Q_LAST = Q
+     DO I = 1,N_CONSTRAINTS
+        CALL PROJECT_TO_SIMPLEX( Q, INDEX_MATRIX(I, 1:ACTIVE_LENGTHS(I)) )
+     END DO
+
+     CALL QUANTIFY(Q, QINT)
+!     IF(CHECK_SOLUTION(QUANTIFY(Q), INDEX_MATRIX, ACTIVE_LENGTHS)) EXIT
+     IF(CHECK_SOLUTION(QINT, INDEX_MATRIX, ACTIVE_LENGTHS)) EXIT
+
+!     QINT = QUANTIFY(Q)
+
+     DIFF = Q - Q_LAST
+     LEN = NORM(DIFF)
+     IF ( (LEN / NORM(Q_LAST)) < ETA) THEN
+        EXIT
+     END IF
+  END DO
+     
+END SUBROUTINE SUDOKU_BY_PROJECTION
