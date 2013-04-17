@@ -41,7 +41,7 @@
     Z = puzzle_parameters$Z
 
     time = system.time({
-      sol = call_sudoku_by_simulated_annealing(X,D,Z,max_iter=as.integer(1e5))
+      sol = call_sudoku_by_simulated_annealing(X,D,Z,T0=100,max_iter=as.integer(2e5))
     })[3]
     steps_simulated_annealing_easy[i] = sol$iter
     tally_simulated_annealing_easy[i] = all(D %*%sol$q == 1)
